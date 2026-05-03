@@ -1,3 +1,12 @@
+@{
+    var isAdmin = User.IsInRole("Admin");
+    var isUser = User.IsInRole("User");
+    var homeArea = isAdmin ? "Admin" : isUser ? "User" : "";
+    var homeController = User.Identity?.IsAuthenticated == true ? "Home" : "UserAuth";
+    var homeAction = User.Identity?.IsAuthenticated == true ? "Index" : "Login";
+    var roleLabel = isAdmin ? "Administrator" : isUser ? "Library Member" : "Guest";
+    var userLabel = User.Identity?.IsAuthenticated == true ? User.Identity?.Name : "Welcome";
+}
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -22,7 +31,7 @@
                     aria-label="Open menu">
                 <i class="bi bi-list" aria-hidden="true"></i>
             </button>
-            <a class="mobile-topbar-brand text-decoration-none" asp-controller="Home" asp-action="Index">
+            <a class="mobile-topbar-brand text-decoration-none" asp-area="@homeArea" asp-controller="@homeController" asp-action="@homeAction">
                 <span class="mobile-topbar-icon"><i class="bi bi-book-half"></i></span>
                 <span class="mobile-topbar-title">Lumina</span>
             </a>
@@ -45,6 +54,14 @@
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close menu"></button>
         </div>
         <div class="offcanvas-body d-flex flex-column py-3">
+            <div class="sidebar-context">
+                <span class="sidebar-role-badge">@roleLabel</span>
+                <div class="sidebar-user-name">@userLabel</div>
+            </div>
+            <div class="sidebar-search-wrap mb-2">
+                <i class="bi bi-search"></i>
+                <input type="search" class="sidebar-search-input" placeholder="Search navigation..." data-nav-search />
+            </div>
             <nav class="sidebar-nav flex-grow-1">
                 <partial name="_MainNavigation" />
             </nav>
@@ -58,13 +75,21 @@
 
     <div class="app-shell">
         <aside class="sidebar d-none d-lg-flex">
-            <a class="sidebar-brand" asp-controller="Home" asp-action="Index">
+            <a class="sidebar-brand" asp-area="@homeArea" asp-controller="@homeController" asp-action="@homeAction">
                 <span class="sidebar-brand-icon"><i class="bi bi-book-half"></i></span>
                 <span>
                     <span class="sidebar-brand-title">Lumina</span>
                     <span class="sidebar-brand-sub">Library suite</span>
                 </span>
             </a>
+            <div class="sidebar-context">
+                <span class="sidebar-role-badge">@roleLabel</span>
+                <div class="sidebar-user-name">@userLabel</div>
+            </div>
+            <div class="sidebar-search-wrap">
+                <i class="bi bi-search"></i>
+                <input type="search" class="sidebar-search-input" placeholder="Search navigation..." data-nav-search />
+            </div>
             <nav class="sidebar-nav flex-grow-1">
                 <partial name="_MainNavigation" />
             </nav>
@@ -77,10 +102,17 @@
         <div class="main-area">
             <header class="page-header">
                 <div class="page-header-text">
-                    <p class="page-kicker mb-0">Library operations</p>
+                    <p class="page-kicker mb-0">@(isAdmin ? "Admin operations" : isUser ? "Member portal" : "Library access")</p>
                     <h1 class="page-title">@ViewData["Title"]</h1>
                 </div>
                 <div class="page-actions d-none d-md-flex align-items-center gap-3 flex-wrap justify-content-end">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <span class="text-muted small">@User.Identity.Name</span>
+                        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">Sign out</button>
+                        </form>
+                    }
                     <span class="text-muted small page-date">@DateTime.Now.ToString("dddd, MMMM d")</span>
                 </div>
             </header>

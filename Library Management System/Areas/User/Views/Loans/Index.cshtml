@@ -1,0 +1,45 @@
+@model IEnumerable<BorrowRecord>
+@{
+    ViewData["Title"] = "My Loans";
+    var filter = ViewBag.Filter as string ?? "active";
+    var today = ViewBag.Today is DateOnly t ? t : DateOnly.FromDateTime(DateTime.Today);
+}
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a class="filter-pill @(filter == "active" ? "active" : null)" asp-action="Index" asp-route-filter="active">Active</a>
+    <a class="filter-pill @(filter == "overdue" ? "active" : null)" asp-action="Index" asp-route-filter="overdue">Overdue</a>
+    <a class="filter-pill @(filter == "returned" ? "active" : null)" asp-action="Index" asp-route-filter="returned">Returned</a>
+    <a class="filter-pill @(filter == "all" ? "active" : null)" asp-action="Index" asp-route-filter="all">All</a>
+</div>
+
+<div class="card-surface table-card">
+    <div class="table-responsive">
+        <table class="table table-modern align-middle mb-0">
+            <thead><tr><th>Book</th><th>Borrowed</th><th>Due</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+                @foreach (var loan in Model)
+                {
+                    var active = loan.ReturnDate == null && loan.Status == LoanRules.StatusBorrowed;
+                    var overdue = active && loan.DueDate.HasValue && loan.DueDate < today;
+                    <tr>
+                        <td>
+                            @loan.BookItem.Book.Title
+                            <span class="text-muted small d-block">@loan.BookItem.Book.Author.FullName · @loan.BookItem.Barcode</span>
+                        </td>
+                        <td>@loan.BorrowDate</td>
+                        <td>@(loan.DueDate?.ToString() ?? "—")</td>
+                        <td><span class="badge badge-status @(overdue ? "badge-overdue" : active ? "badge-borrowed" : "badge-returned")">@(overdue ? "Overdue" : active ? "On loan" : "Returned")</span></td>
+                        <td class="text-end">
+                            @if (active)
+                            {
+                                <form asp-action="Return" asp-route-id="@loan.BorrowRecordId" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-primary">Return</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -6,6 +7,8 @@ using System.Models;
 
 namespace System.Controllers;
 
+[Area("Admin")]
+[Authorize(Roles = IdentitySeeder.AdminRole)]
 public class HomeController : Controller
 {
     private readonly AppDbContext _db;

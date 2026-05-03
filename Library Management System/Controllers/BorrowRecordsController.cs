@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,8 @@ using System.Models;
 
 namespace System.Controllers;
 
+[Area("Admin")]
+[Authorize(Roles = IdentitySeeder.AdminRole)]
 public class BorrowRecordsController : Controller
 {
     private readonly AppDbContext _context;
@@ -84,7 +87,9 @@ public class BorrowRecordsController : Controller
     public async Task<IActionResult> Create()
     {
         await PopulateDropdownsAsync();
-        ViewBag.DefaultLoanDays = LoanRules.DefaultLoanDays;
+        var settings = await GetSettingsAsync();
+        ViewBag.DefaultLoanDays = settings.DefaultLoanDays;
+        ViewBag.TodayDate = DateTime.Today.ToString("yyyy-MM-dd");
         return View(new BorrowRecord
         {
             BorrowDate = DateOnly.FromDateTime(DateTime.Today)
@@ -96,17 +101,13 @@ public class BorrowRecordsController : Controller
     {
         record.Status = LoanRules.StatusBorrowed;
         record.ReturnDate = null;
+        var settings = await GetSettingsAsync();
+        var today = DateOnly.FromDateTime(DateTime.Today);
 
         if (!record.DueDate.HasValue)
-            record.DueDate = record.BorrowDate.AddDays(LoanRules.DefaultLoanDays);
+            record.DueDate = record.BorrowDate.AddDays(settings.DefaultLoanDays);
 
-        var memberActive = await _context.BorrowRecords.CountAsync(br =>
-            br.MemberId == record.MemberId
-            && br.ReturnDate == null
-            && br.Status == LoanRules.StatusBorrowed);
-        if (memberActive >= LoanRules.MaxConcurrentLoansPerMember)
-            ModelState.AddModelError(string.Empty,
-                $"Members may borrow at most {LoanRules.MaxConcurrentLoansPerMember} items at a time.");
+        await ValidateLoanAsync(record, settings);
 
         var alreadyOut = await _context.BorrowRecords.AnyAsync(br =>
             br.BookItemId == record.BookItemId
@@ -117,6 +118,8 @@ public class BorrowRecordsController : Controller
 
         if (record.DueDate < record.BorrowDate)
             ModelState.AddModelError(nameof(BorrowRecord.DueDate), "Due date cannot be before the borrow date.");
+        if (record.DueDate.HasValue && record.DueDate.Value < today)
+            ModelState.AddModelError(nameof(BorrowRecord.DueDate), "Due date cannot be in the past.");
 
         if (ModelState.IsValid)
         {
@@ -130,7 +133,8 @@ public class BorrowRecordsController : Controller
         }
 
         await PopulateDropdownsAsync(record);
-        ViewBag.DefaultLoanDays = LoanRules.DefaultLoanDays;
+        ViewBag.DefaultLoanDays = settings.DefaultLoanDays;
+        ViewBag.TodayDate = DateTime.Today.ToString("yyyy-MM-dd");
         return View(record);
     }
 
@@ -154,6 +158,7 @@ public class BorrowRecordsController : Controller
         var record = await _context.BorrowRecords.FindAsync(id);
         if (record == null) return NotFound();
         await PopulateDropdownsAsync(record);
+        ViewBag.TodayDate = DateTime.Today.ToString("yyyy-MM-dd");
         return View(record);
     }
 
@@ -161,12 +166,19 @@ public class BorrowRecordsController : Controller
     public async Task<IActionResult> Edit(int id, [Bind("BorrowRecordId,MemberId,BookItemId,BorrowDate,DueDate,ReturnDate,Status")] BorrowRecord record)
     {
         if (id != record.BorrowRecordId) return NotFound();
+        await ValidateLoanReferencesAsync(record);
+        var today = DateOnly.FromDateTime(DateTime.Today);
 
         if (record.DueDate.HasValue && record.DueDate < record.BorrowDate)
             ModelState.AddModelError(nameof(BorrowRecord.DueDate), "Due date cannot be before the borrow date.");
 
         if (record.ReturnDate.HasValue && record.ReturnDate < record.BorrowDate)
             ModelState.AddModelError(nameof(BorrowRecord.ReturnDate), "Return date cannot be before borrow date.");
+        if (!record.ReturnDate.HasValue && record.DueDate.HasValue && record.DueDate.Value < today)
+            ModelState.AddModelError(nameof(BorrowRecord.DueDate), "Active loans cannot have a past due date.");
+
+        if (record.Status is not LoanRules.StatusBorrowed and not LoanRules.StatusReturned)
+            ModelState.AddModelError(nameof(BorrowRecord.Status), "Choose a valid loan status.");
 
         var dupLoan = await _context.BorrowRecords.AnyAsync(br =>
             br.BookItemId == record.BookItemId
@@ -199,6 +211,7 @@ public class BorrowRecordsController : Controller
         }
 
         await PopulateDropdownsAsync(record);
+        ViewBag.TodayDate = DateTime.Today.ToString("yyyy-MM-dd");
         return View(record);
     }
 
@@ -222,7 +235,8 @@ public class BorrowRecordsController : Controller
         if (record.DueDate.HasValue && today > record.DueDate)
         {
             var days = today.DayNumber - record.DueDate.Value.DayNumber;
-            var amount = Math.Round(1.50m * days, 2);
+            var settings = await GetSettingsAsync();
+            var amount = Math.Round(settings.DailyFineAmount * days, 2);
             if (amount > 0)
                 _context.Fines.Add(new Fine
                 {
@@ -260,5 +274,46 @@ public class BorrowRecordsController : Controller
             TempData["Success"] = "Loan record removed.";
         }
         return RedirectToAction(nameof(Index), new { filter = "all" });
+    }
+
+    private async Task<LibrarySettings> GetSettingsAsync()
+    {
+        var settings = await _context.LibrarySettings.FirstOrDefaultAsync(s => s.LibrarySettingsId == 1);
+        if (settings != null)
+            return settings;
+
+        settings = new LibrarySettings();
+        _context.LibrarySettings.Add(settings);
+        await _context.SaveChangesAsync();
+        return settings;
+    }
+
+    private async Task ValidateLoanAsync(BorrowRecord record, LibrarySettings settings)
+    {
+        await ValidateLoanReferencesAsync(record);
+
+        if (record.BorrowDate > DateOnly.FromDateTime(DateTime.Today))
+            ModelState.AddModelError(nameof(BorrowRecord.BorrowDate), "Borrow date cannot be in the future.");
+
+        var member = await _context.Members.AsNoTracking().FirstOrDefaultAsync(m => m.MemberId == record.MemberId);
+        if (member?.IsBlocked == true)
+            ModelState.AddModelError(nameof(BorrowRecord.MemberId), "Blocked members cannot borrow books.");
+
+        var memberActive = await _context.BorrowRecords.CountAsync(br =>
+            br.MemberId == record.MemberId
+            && br.ReturnDate == null
+            && br.Status == LoanRules.StatusBorrowed);
+        if (memberActive >= settings.MaxConcurrentLoansPerMember)
+            ModelState.AddModelError(string.Empty,
+                $"Members may borrow at most {settings.MaxConcurrentLoansPerMember} items at a time.");
+    }
+
+    private async Task ValidateLoanReferencesAsync(BorrowRecord record)
+    {
+        if (!await _context.Members.AnyAsync(m => m.MemberId == record.MemberId))
+            ModelState.AddModelError(nameof(BorrowRecord.MemberId), "Choose a valid member.");
+
+        if (!await _context.BookItems.AnyAsync(i => i.BookItemId == record.BookItemId))
+            ModelState.AddModelError(nameof(BorrowRecord.BookItemId), "Choose a valid copy.");
     }
 }

@@ -7,34 +7,41 @@
         <div class="mb-3">
             <label asp-for="Title" class="form-label"></label>
             <input asp-for="Title" class="form-control" required />
+            <span asp-validation-for="Title" class="text-danger small"></span>
         </div>
         <div class="mb-3">
             <label asp-for="AuthorId" class="form-label">Author</label>
             <select asp-for="AuthorId" asp-items="ViewBag.AuthorId" class="form-select"></select>
+            <span asp-validation-for="AuthorId" class="text-danger small"></span>
         </div>
         <div class="mb-3">
             <label asp-for="CategoryId" class="form-label"></label>
             <select asp-for="CategoryId" asp-items="ViewBag.CategoryId" class="form-select"></select>
+            <span asp-validation-for="CategoryId" class="text-danger small"></span>
         </div>
         <div class="mb-3">
             <label asp-for="PublisherId" class="form-label"></label>
             <select asp-for="PublisherId" asp-items="ViewBag.PublisherId" class="form-select">
                 <option value="">None</option>
             </select>
+            <span asp-validation-for="PublisherId" class="text-danger small"></span>
         </div>
         <div class="row g-3">
             <div class="col-md-6">
                 <label asp-for="PublishedYear" class="form-label"></label>
                 <input asp-for="PublishedYear" class="form-control" type="number" required />
+                <span asp-validation-for="PublishedYear" class="text-danger small"></span>
             </div>
             <div class="col-md-6">
                 <label asp-for="ISBN" class="form-label"></label>
                 <input asp-for="ISBN" class="form-control" />
+                <span asp-validation-for="ISBN" class="text-danger small"></span>
             </div>
         </div>
         <div class="mb-4 mt-3">
             <label asp-for="Summary" class="form-label"></label>
             <textarea asp-for="Summary" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="Summary" class="text-danger small"></span>
         </div>
         <p class="small text-muted">Manage barcodes and branches from the title detail page after saving bibliographic fields.</p>
         <button type="submit" class="btn btn-primary">Save</button>

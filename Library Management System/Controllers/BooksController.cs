@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,8 @@ using System.Models;
 
 namespace System.Controllers;
 
+[Area("Admin")]
+[Authorize(Roles = IdentitySeeder.AdminRole)]
 public class BooksController : Controller
 {
     private readonly AppDbContext _context;
@@ -102,6 +105,10 @@ public class BooksController : Controller
         int branchId = 1,
         string? shelfPrefix = null)
     {
+        book.Title = book.Title.Trim();
+        book.ISBN = string.IsNullOrWhiteSpace(book.ISBN) ? null : book.ISBN.Trim();
+        await ValidateBookAsync(book);
+
         if (initialCopies < 1 || initialCopies > 999)
             ModelState.AddModelError(string.Empty, "Initial copies must be between 1 and 999.");
         if (!await _context.Branches.AnyAsync(b => b.BranchId == branchId))
@@ -109,7 +116,6 @@ public class BooksController : Controller
 
         if (ModelState.IsValid)
         {
-            book.ISBN = string.IsNullOrWhiteSpace(book.ISBN) ? null : book.ISBN.Trim();
             _context.Add(book);
             await _context.SaveChangesAsync();
 
@@ -151,12 +157,14 @@ public class BooksController : Controller
     public async Task<IActionResult> Edit(int id, [Bind("BookId,Title,ISBN,PublishedYear,Summary,AuthorId,PublisherId,CategoryId")] Book book)
     {
         if (id != book.BookId) return NotFound();
+        book.Title = book.Title.Trim();
+        book.ISBN = string.IsNullOrWhiteSpace(book.ISBN) ? null : book.ISBN.Trim();
+        await ValidateBookAsync(book, id);
 
         if (ModelState.IsValid)
         {
             try
             {
-                book.ISBN = string.IsNullOrWhiteSpace(book.ISBN) ? null : book.ISBN.Trim();
                 _context.Update(book);
                 await _context.SaveChangesAsync();
                 TempData["Success"] = "Bibliographic record updated.";
@@ -222,5 +230,29 @@ public class BooksController : Controller
         ViewData["PublisherId"] = new SelectList(await _context.Publishers.OrderBy(p => p.Name).ToListAsync(), "PublisherId", "Name", selected?.PublisherId);
         ViewData["CategoryId"] = new SelectList(await _context.Categories.OrderBy(c => c.Name).ToListAsync(), "CategoryId", "Name", selected?.CategoryId);
         ViewData["BranchId"] = new SelectList(await _context.Branches.OrderBy(b => b.Name).ToListAsync(), "BranchId", "Name");
+    }
+
+    private async Task ValidateBookAsync(Book book, int? currentBookId = null)
+    {
+        if (!await _context.Authors.AnyAsync(a => a.AuthorId == book.AuthorId))
+            ModelState.AddModelError(nameof(Book.AuthorId), "Choose a valid author.");
+
+        if (!await _context.Categories.AnyAsync(c => c.CategoryId == book.CategoryId))
+            ModelState.AddModelError(nameof(Book.CategoryId), "Choose a valid category.");
+
+        if (book.PublisherId.HasValue && !await _context.Publishers.AnyAsync(p => p.PublisherId == book.PublisherId))
+            ModelState.AddModelError(nameof(Book.PublisherId), "Choose a valid publisher.");
+
+        if (book.PublishedYear > DateTime.Today.Year + 1)
+            ModelState.AddModelError(nameof(Book.PublishedYear), "Published year cannot be in the far future.");
+
+        if (!string.IsNullOrWhiteSpace(book.ISBN))
+        {
+            var isbnExists = await _context.Books.AnyAsync(b =>
+                b.ISBN == book.ISBN
+                && (!currentBookId.HasValue || b.BookId != currentBookId.Value));
+            if (isbnExists)
+                ModelState.AddModelError(nameof(Book.ISBN), "Another book already uses this ISBN.");
+        }
     }
 }

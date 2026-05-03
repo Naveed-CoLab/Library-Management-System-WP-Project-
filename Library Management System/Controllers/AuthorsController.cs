@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -5,6 +6,8 @@ using System.Models;
 
 namespace System.Controllers;
 
+[Area("Admin")]
+[Authorize(Roles = IdentitySeeder.AdminRole)]
 public class AuthorsController : Controller
 {
     private readonly AppDbContext _context;
@@ -26,6 +29,8 @@ public class AuthorsController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("FullName,Nationality,DateOfBirth")] Author author)
     {
+        NormalizeAuthor(author);
+        await ValidateAuthorAsync(author);
         if (ModelState.IsValid) { _context.Add(author); await _context.SaveChangesAsync(); TempData["Success"] = "Author added."; return RedirectToAction(nameof(Index)); }
         return View(author);
     }
@@ -42,6 +47,8 @@ public class AuthorsController : Controller
     public async Task<IActionResult> Edit(int id, [Bind("AuthorId,FullName,Nationality,DateOfBirth")] Author author)
     {
         if (id != author.AuthorId) return NotFound();
+        NormalizeAuthor(author);
+        await ValidateAuthorAsync(author, id);
         if (ModelState.IsValid)
         {
             try { _context.Update(author); await _context.SaveChangesAsync(); TempData["Success"] = "Author updated."; }
@@ -95,5 +102,23 @@ public class AuthorsController : Controller
         await _context.SaveChangesAsync();
         TempData["Success"] = "Author and linked catalogue records removed.";
         return RedirectToAction(nameof(Index));
+    }
+
+    private static void NormalizeAuthor(Author author)
+    {
+        author.FullName = author.FullName.Trim();
+        author.Nationality = string.IsNullOrWhiteSpace(author.Nationality) ? null : author.Nationality.Trim();
+    }
+
+    private async Task ValidateAuthorAsync(Author author, int? currentAuthorId = null)
+    {
+        if (author.DateOfBirth.HasValue && author.DateOfBirth.Value > DateOnly.FromDateTime(DateTime.Today))
+            ModelState.AddModelError(nameof(Author.DateOfBirth), "Date of birth cannot be in the future.");
+
+        var duplicate = await _context.Authors.AnyAsync(a =>
+            a.FullName == author.FullName
+            && (!currentAuthorId.HasValue || a.AuthorId != currentAuthorId.Value));
+        if (duplicate)
+            ModelState.AddModelError(nameof(Author.FullName), "An author with this name already exists.");
     }
 }

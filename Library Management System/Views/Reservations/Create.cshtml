@@ -6,15 +6,18 @@
         <div class="mb-3">
             <label asp-for="MemberId" class="form-label"></label>
             <select asp-for="MemberId" asp-items="ViewBag.MemberId" class="form-select" required></select>
+            <span asp-validation-for="MemberId" class="text-danger small"></span>
         </div>
         <div class="mb-3">
             <label asp-for="BookId" class="form-label">Title</label>
             <select asp-for="BookId" asp-items="ViewBag.BookId" class="form-select" required></select>
+            <span asp-validation-for="BookId" class="text-danger small"></span>
         </div>
         <div class="mb-4">
             <label asp-for="ExpiresOn" class="form-label"></label>
             <input asp-for="ExpiresOn" class="form-control" type="date" />
             <span class="form-text text-muted">Optional expiry for dormant holds.</span>
+            <span asp-validation-for="ExpiresOn" class="text-danger small d-block"></span>
         </div>
         <button type="submit" class="btn btn-primary">Save reservation</button>
         <a asp-action="Index" class="btn btn-outline-secondary ms-2">Cancel</a>

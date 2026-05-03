@@ -1,0 +1,38 @@
+@model LibrarySettings
+@{
+    ViewData["Title"] = "System Settings";
+}
+
+<div class="card-surface p-4 p-md-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h2 class="panel-title mb-1">Circulation rules</h2>
+            <p class="text-muted mb-0">These values drive checkout limits, due dates, and overdue fine creation.</p>
+        </div>
+        <a asp-action="Edit" class="btn btn-primary">Edit settings</a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="stat-card border rounded-4">
+                <div class="stat-label">Default loan period</div>
+                <div class="stat-value">@Model.DefaultLoanDays</div>
+                <div class="stat-hint">days</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card border rounded-4">
+                <div class="stat-label">Concurrent limit</div>
+                <div class="stat-value">@Model.MaxConcurrentLoansPerMember</div>
+                <div class="stat-hint">books per member</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card border rounded-4">
+                <div class="stat-label">Daily overdue fine</div>
+                <div class="stat-value">@Model.DailyFineAmount.ToString("C")</div>
+                <div class="stat-hint">per day</div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,31 @@
+@model IEnumerable<Reservation>
+@{
+    ViewData["Title"] = "My Reservations";
+}
+
+<div class="card-surface table-card">
+    <div class="table-responsive">
+        <table class="table table-modern align-middle mb-0">
+            <thead><tr><th>Book</th><th>Reserved</th><th>Expires</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+                @foreach (var reservation in Model)
+                {
+                    <tr>
+                        <td>@reservation.Book.Title <span class="text-muted small d-block">@reservation.Book.Author.FullName</span></td>
+                        <td>@reservation.ReservedAt.ToLocalTime().ToString("g")</td>
+                        <td>@(reservation.ExpiresOn?.ToString() ?? "—")</td>
+                        <td><span class="badge badge-status @(reservation.Status == ReservationRules.Waiting ? "badge-borrowed" : "badge-returned")">@reservation.Status</span></td>
+                        <td class="text-end">
+                            @if (reservation.Status == ReservationRules.Waiting)
+                            {
+                                <form asp-action="Cancel" asp-route-id="@reservation.ReservationId" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

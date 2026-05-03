@@ -1,0 +1,99 @@
+@model UserDashboardViewModel
+@{
+    ViewData["Title"] = "My Library";
+    var today = DateOnly.FromDateTime(DateTime.Today);
+}
+
+<div class="hero-panel mb-4">
+    <div class="hero-panel-inner">
+        <h2>Hello, @Model.Member.FullName</h2>
+        <p>Track borrowed books, reservations, and fines from your member dashboard.</p>
+        <div class="hero-actions">
+            <a class="btn btn-light" asp-controller="Catalog" asp-action="Index"><i class="bi bi-search me-1"></i>Browse catalog</a>
+            <a class="btn btn-outline-light" asp-controller="Loans" asp-action="Index"><i class="bi bi-journal-check me-1"></i>My loans</a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-2 g-md-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="card-surface stat-card">
+            <div class="stat-label">Borrowed</div>
+            <div class="stat-value">@Model.ActiveLoans</div>
+            <div class="stat-hint">active loans</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card-surface stat-card">
+            <div class="stat-label">Overdue</div>
+            <div class="stat-value @(Model.OverdueLoans > 0 ? "text-danger" : "")">@Model.OverdueLoans</div>
+            <div class="stat-hint">need return</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card-surface stat-card">
+            <div class="stat-label">Reservations</div>
+            <div class="stat-value">@Model.Reservations</div>
+            <div class="stat-hint">waiting holds</div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card-surface stat-card">
+            <div class="stat-label">Unpaid fines</div>
+            <div class="stat-value @(Model.OutstandingFinesTotal > 0 ? "text-danger" : "")">@Model.OutstandingFinesTotal.ToString("C")</div>
+            <div class="stat-hint">outstanding</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 g-lg-4">
+    <div class="col-lg-7">
+        <div class="card-surface table-card p-3 p-md-4 h-100">
+            <div class="panel-head">
+                <h2 class="panel-title">Current loans</h2>
+                <a class="btn btn-sm btn-soft" asp-controller="Loans" asp-action="Index">View all</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-modern align-middle mb-0">
+                    <thead><tr><th>Book</th><th>Due</th><th>Status</th></tr></thead>
+                    <tbody>
+                        @foreach (var loan in Model.CurrentLoans)
+                        {
+                            var overdue = loan.DueDate.HasValue && loan.DueDate < today;
+                            <tr>
+                                <td>@loan.BookItem.Book.Title <span class="text-muted small d-block">@loan.BookItem.Book.Author.FullName</span></td>
+                                <td>@(loan.DueDate?.ToString() ?? "—")</td>
+                                <td><span class="badge badge-status @(overdue ? "badge-overdue" : "badge-borrowed")">@(overdue ? "Overdue" : "On loan")</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card-surface table-card p-3 p-md-4 h-100">
+            <div class="panel-head">
+                <h2 class="panel-title">Open fines</h2>
+                <a class="btn btn-sm btn-soft" asp-controller="Fines" asp-action="Index">Fines</a>
+            </div>
+            @if (Model.OpenFines.Count == 0)
+            {
+                <div class="empty-state py-4">No unpaid fines.</div>
+            }
+            else
+            {
+                @foreach (var fine in Model.OpenFines)
+                {
+                    <div class="dash-mini-card">
+                        <div class="dash-mini-row">
+                            <span class="fw-semibold">@fine.BorrowRecord.BookItem.Book.Title</span>
+                            <span>@fine.Amount.ToString("C")</span>
+                        </div>
+                        <div class="dash-mini-label">@fine.Reason</div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,39 @@
+@model IEnumerable<Fine>
+@{
+    ViewData["Title"] = "My Fines";
+    var filter = ViewBag.Filter as string ?? "unpaid";
+}
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a class="filter-pill @(filter == "unpaid" ? "active" : null)" asp-action="Index" asp-route-filter="unpaid">Unpaid</a>
+    <a class="filter-pill @(filter == "paid" ? "active" : null)" asp-action="Index" asp-route-filter="paid">Paid</a>
+    <a class="filter-pill @(filter == "all" ? "active" : null)" asp-action="Index" asp-route-filter="all">All</a>
+</div>
+
+<div class="card-surface table-card">
+    <div class="table-responsive">
+        <table class="table table-modern align-middle mb-0">
+            <thead><tr><th>Issued</th><th>Book</th><th>Reason</th><th class="text-end">Amount</th><th>Paid</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+                @foreach (var fine in Model)
+                {
+                    <tr>
+                        <td>@fine.IssuedOn</td>
+                        <td>@fine.BorrowRecord.BookItem.Book.Title</td>
+                        <td>@fine.Reason</td>
+                        <td class="text-end fw-semibold">@fine.Amount.ToString("C")</td>
+                        <td>@(fine.PaidOn?.ToString() ?? "—")</td>
+                        <td class="text-end">
+                            @if (fine.PaidOn == null)
+                            {
+                                <form asp-action="Pay" asp-route-id="@fine.FineId" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-primary">Mark paid</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,8 @@ using System.Models;
 
 namespace System.Controllers;
 
+[Area("Admin")]
+[Authorize(Roles = IdentitySeeder.AdminRole)]
 public class ReservationsController : Controller
 {
     private readonly AppDbContext _context;
@@ -37,6 +40,7 @@ public class ReservationsController : Controller
     {
         reservation.ReservedAt = DateTime.UtcNow;
         reservation.Status = ReservationRules.Waiting;
+        await ValidateReservationAsync(reservation);
 
         var dup = await _context.Reservations.AnyAsync(r =>
             r.MemberId == reservation.MemberId
@@ -73,5 +77,20 @@ public class ReservationsController : Controller
             TempData["Success"] = "Hold cancelled.";
         }
         return RedirectToAction(nameof(Index));
+    }
+
+    private async Task ValidateReservationAsync(Reservation reservation)
+    {
+        var member = await _context.Members.AsNoTracking().FirstOrDefaultAsync(m => m.MemberId == reservation.MemberId);
+        if (member == null)
+            ModelState.AddModelError(nameof(Reservation.MemberId), "Choose a valid member.");
+        else if (member.IsBlocked)
+            ModelState.AddModelError(nameof(Reservation.MemberId), "Blocked members cannot place holds.");
+
+        if (!await _context.Books.AnyAsync(b => b.BookId == reservation.BookId))
+            ModelState.AddModelError(nameof(Reservation.BookId), "Choose a valid book.");
+
+        if (reservation.ExpiresOn.HasValue && reservation.ExpiresOn.Value < DateOnly.FromDateTime(DateTime.Today))
+            ModelState.AddModelError(nameof(Reservation.ExpiresOn), "Expiration date cannot be in the past.");
     }
 }

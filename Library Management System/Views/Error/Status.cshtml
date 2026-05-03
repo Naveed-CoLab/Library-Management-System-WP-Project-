@@ -1,0 +1,11 @@
+@{
+    var statusCode = ViewBag.StatusCode as int? ?? Context.Response.StatusCode;
+    ViewData["Title"] = statusCode == 404 ? "Page not found" : "Request unavailable";
+}
+
+<div class="card-surface p-4 p-md-5 text-center">
+    <i class="bi bi-shield-exclamation fs-1 d-block mb-3 text-warning"></i>
+    <h2 class="panel-title">@ViewData["Title"]</h2>
+    <p class="text-muted mb-4">Status code @statusCode. The page may have moved or your account may not have access.</p>
+    <a asp-area="" asp-controller="UserAuth" asp-action="Login" class="btn btn-primary">Back to user login</a>
+</div>

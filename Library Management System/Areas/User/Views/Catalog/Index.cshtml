@@ -1,0 +1,57 @@
+@model IEnumerable<Book>
+@using System.Collections.Generic
+@{
+    ViewData["Title"] = "Catalog";
+    var outCounts = ViewBag.OutCounts as IDictionary<int, int> ?? new Dictionary<int, int>();
+}
+
+<form method="get" class="card-surface p-3 mb-4">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-5">
+            <label class="form-label small text-muted mb-1">Search</label>
+            <input type="search" name="q" value="@ViewBag.Q" class="form-control" placeholder="Title, ISBN, or author" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small text-muted mb-1">Category</label>
+            <select name="categoryId" class="form-select" asp-items="ViewBag.CategoryOptions"></select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-grow-1">Apply</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
+        </div>
+    </div>
+</form>
+
+<div class="row g-3">
+    @foreach (var book in Model)
+    {
+        var total = book.Items.Count;
+        var outN = outCounts.TryGetValue(book.BookId, out var c) ? c : 0;
+        var available = total - outN;
+        <div class="col-md-6 col-xl-4">
+            <div class="card-surface p-4 h-100 d-flex flex-column">
+                <div class="mb-3">
+                    <span class="badge badge-status @(available > 0 ? "badge-returned" : "badge-overdue")">@(available > 0 ? $"{available} available" : "Unavailable")</span>
+                </div>
+                <h2 class="panel-title mb-1">@book.Title</h2>
+                <p class="text-muted mb-2">@book.Author.FullName</p>
+                <p class="small text-muted flex-grow-1">@book.Category.Name · @book.PublishedYear</p>
+                <div class="d-flex gap-2">
+                    <a asp-action="Details" asp-route-id="@book.BookId" class="btn btn-outline-secondary btn-sm">Details</a>
+                    @if (available > 0)
+                    {
+                        <form asp-action="Borrow" asp-route-id="@book.BookId" method="post">
+                            <button type="submit" class="btn btn-primary btn-sm">Borrow</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="Reserve" asp-route-id="@book.BookId" method="post">
+                            <button type="submit" class="btn btn-primary btn-sm">Reserve</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

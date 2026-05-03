@@ -1,0 +1,81 @@
+@model ReportsViewModel
+@{
+    ViewData["Title"] = "Reports";
+    var today = DateOnly.FromDateTime(DateTime.Today);
+}
+
+<div class="row g-2 g-md-3 mb-4">
+    <div class="col-md-4">
+        <div class="card-surface stat-card">
+            <div class="stat-label">Active loans</div>
+            <div class="stat-value">@Model.ActiveLoans.Count</div>
+            <div class="stat-hint">Currently borrowed copies</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-surface stat-card">
+            <div class="stat-label">Overdue loans</div>
+            <div class="stat-value @(Model.OverdueLoans.Count > 0 ? "text-danger" : "")">@Model.OverdueLoans.Count</div>
+            <div class="stat-hint">Need follow-up</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-surface stat-card">
+            <div class="stat-label">Outstanding fines</div>
+            <div class="stat-value @(Model.OutstandingFinesTotal > 0 ? "text-danger" : "")">@Model.OutstandingFinesTotal.ToString("C")</div>
+            <div class="stat-hint">Unpaid balance</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 g-lg-4">
+    <div class="col-lg-7">
+        <div class="card-surface table-card p-3 p-md-4 h-100">
+            <div class="panel-head">
+                <h2 class="panel-title">Overdue follow-up</h2>
+                <a class="btn btn-sm btn-soft" asp-controller="BorrowRecords" asp-action="Index" asp-route-filter="overdue">Open loans</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-modern align-middle mb-0">
+                    <thead><tr><th>Member</th><th>Book</th><th>Due</th><th>Days</th></tr></thead>
+                    <tbody>
+                        @foreach (var loan in Model.OverdueLoans)
+                        {
+                            var days = loan.DueDate.HasValue ? today.DayNumber - loan.DueDate.Value.DayNumber : 0;
+                            <tr>
+                                <td>@loan.Member.FullName</td>
+                                <td>@loan.BookItem.Book.Title <span class="text-muted small">· @loan.BookItem.Book.Author.FullName</span></td>
+                                <td><span class="badge badge-status badge-overdue">@loan.DueDate</span></td>
+                                <td>@days</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card-surface table-card p-3 p-md-4 h-100">
+            <div class="panel-head">
+                <h2 class="panel-title">Most borrowed</h2>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-modern align-middle mb-0">
+                    <thead><tr><th>Book</th><th class="text-end">Borrows</th></tr></thead>
+                    <tbody>
+                        @foreach (var book in Model.PopularBooks)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="fw-semibold">@book.Title</span>
+                                    <span class="text-muted small d-block">@book.Author</span>
+                                </td>
+                                <td class="text-end fw-semibold">@book.BorrowCount</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

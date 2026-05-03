@@ -1,12 +1,14 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Models;
 
 namespace System.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<ApplicationUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+    public DbSet<LibrarySettings> LibrarySettings => Set<LibrarySettings>();
     public DbSet<Publisher> Publishers => Set<Publisher>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Branch> Branches => Set<Branch>();
@@ -20,6 +22,24 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<ApplicationUser>(e =>
+        {
+            e.HasOne(u => u.Member)
+                .WithMany()
+                .HasForeignKey(u => u.MemberId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<LibrarySettings>().HasData(new LibrarySettings
+        {
+            LibrarySettingsId = 1,
+            DefaultLoanDays = LoanRules.DefaultLoanDays,
+            MaxConcurrentLoansPerMember = LoanRules.MaxConcurrentLoansPerMember,
+            DailyFineAmount = 1.50m
+        });
+
         modelBuilder.Entity<Member>(e =>
         {
             e.HasIndex(m => m.Email).IsUnique();

@@ -43,5 +43,41 @@
         });
       });
     }
+
+    document.querySelectorAll('[data-nav-search]').forEach(function (input) {
+      input.addEventListener('input', function () {
+        var term = (input.value || '').trim().toLowerCase();
+        var nav = input.closest('.sidebar, .offcanvas-body')?.querySelector('.sidebar-nav');
+        if (!nav) return;
+
+        nav.querySelectorAll('[data-nav-group]').forEach(function (group) {
+          var visibleLinks = 0;
+          group.querySelectorAll('.sidebar-link').forEach(function (link) {
+            var label = (link.getAttribute('data-nav-label') || link.textContent || '').toLowerCase();
+            var show = !term || label.indexOf(term) !== -1;
+            link.style.display = show ? '' : 'none';
+            if (show) visibleLinks += 1;
+          });
+          group.style.display = visibleLinks > 0 ? '' : 'none';
+        });
+      });
+    });
+
+    document.querySelectorAll('[data-snackbar]').forEach(function (snackbar) {
+      function dismiss() {
+        snackbar.style.opacity = '0';
+        snackbar.style.transform = 'translateY(-6px)';
+        window.setTimeout(function () {
+          snackbar.remove();
+        }, 180);
+      }
+
+      var close = snackbar.querySelector('[data-snackbar-close]');
+      if (close) {
+        close.addEventListener('click', dismiss);
+      }
+
+      window.setTimeout(dismiss, 6000);
+    });
   });
 })();

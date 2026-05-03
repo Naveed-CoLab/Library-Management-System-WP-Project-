@@ -20,12 +20,12 @@
         </div>
         <div class="mb-3">
             <label asp-for="BorrowDate" class="form-label"></label>
-            <input asp-for="BorrowDate" class="form-control" type="date" />
+            <input asp-for="BorrowDate" class="form-control" type="date" min="@ViewBag.TodayDate" />
             <span asp-validation-for="BorrowDate" class="text-danger small"></span>
         </div>
         <div class="mb-4">
             <label asp-for="DueDate" class="form-label"></label>
-            <input asp-for="DueDate" class="form-control" type="date" />
+            <input asp-for="DueDate" class="form-control" type="date" min="@ViewBag.TodayDate" />
             <span class="form-text text-muted">Leave blank = borrow date + @ViewBag.DefaultLoanDays days.</span>
             <span asp-validation-for="DueDate" class="text-danger small d-block"></span>
         </div>

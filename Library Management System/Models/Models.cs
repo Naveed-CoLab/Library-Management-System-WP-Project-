@@ -88,8 +88,9 @@ public class Book
     [Required, MaxLength(200)]
     public string Title { get; set; } = null!;
     [MaxLength(20)]
+    [RegularExpression(@"^[0-9Xx-]{10,20}$", ErrorMessage = "ISBN may only contain digits, X, and hyphens.")]
     public string? ISBN { get; set; }
-    [Required]
+    [Required, Range(1450, 2100)]
     [Display(Name = "Published Year")]
     public int PublishedYear { get; set; }
     [MaxLength(800)]
@@ -141,7 +142,7 @@ public class BookItem
 public class Member
 {
     public int MemberId { get; set; }
-    [Required, MaxLength(100)]
+    [Required, MaxLength(100), MinLength(2)]
     [Display(Name = "Full Name")]
     public string FullName { get; set; } = null!;
     [Required, EmailAddress, MaxLength(150)]
@@ -151,6 +152,7 @@ public class Member
     [DataType(DataType.Date)]
     [Display(Name = "Member Since")]
     public DateOnly MemberSince { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+    public bool IsBlocked { get; set; }
     public ICollection<BorrowRecord> BorrowRecords { get; set; } = new List<BorrowRecord>();
     public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 }
@@ -179,7 +181,7 @@ public class BorrowRecord
     [DataType(DataType.Date)]
     [Display(Name = "Due date")]
     public DateOnly? DueDate { get; set; }
-    [MaxLength(50)]
+    [Required, MaxLength(50)]
     public string Status { get; set; } = LoanRules.StatusBorrowed;
 
     public ICollection<Fine> Fines { get; set; } = new List<Fine>();
@@ -212,6 +214,7 @@ public class Fine
     public int BorrowRecordId { get; set; }
     public BorrowRecord BorrowRecord { get; set; } = null!;
 
+    [Range(typeof(decimal), "0.01", "999999.99")]
     [Column(TypeName = "decimal(10,2)")]
     public decimal Amount { get; set; }
 

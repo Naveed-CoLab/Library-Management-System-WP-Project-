@@ -7,23 +7,28 @@
         <div class="mb-3">
             <label asp-for="MemberId" class="form-label"></label>
             <select asp-for="MemberId" asp-items="ViewBag.MemberId" class="form-select"></select>
+            <span asp-validation-for="MemberId" class="text-danger small"></span>
         </div>
         <div class="mb-3">
             <label asp-for="BookItemId" class="form-label">Copy</label>
             <select asp-for="BookItemId" asp-items="ViewBag.BookItemId" class="form-select"></select>
+            <span asp-validation-for="BookItemId" class="text-danger small"></span>
         </div>
         <div class="mb-3">
             <label asp-for="BorrowDate" class="form-label"></label>
-            <input asp-for="BorrowDate" class="form-control" type="date" />
+            <input asp-for="BorrowDate" class="form-control" type="date" min="@ViewBag.TodayDate" />
+            <span asp-validation-for="BorrowDate" class="text-danger small"></span>
         </div>
         <div class="mb-3">
             <label asp-for="DueDate" class="form-label"></label>
-            <input asp-for="DueDate" class="form-control" type="date" />
+            <input asp-for="DueDate" class="form-control" type="date" min="@ViewBag.TodayDate" />
+            <span asp-validation-for="DueDate" class="text-danger small"></span>
         </div>
         <div class="mb-3">
             <label asp-for="ReturnDate" class="form-label"></label>
             <input asp-for="ReturnDate" class="form-control" type="date" />
             <span class="form-text text-muted">Setting a return closes the loan.</span>
+            <span asp-validation-for="ReturnDate" class="text-danger small d-block"></span>
         </div>
         <div class="mb-4">
             <label asp-for="Status" class="form-label"></label>
@@ -31,6 +36,7 @@
                 <option value="@LoanRules.StatusBorrowed">@LoanRules.StatusBorrowed</option>
                 <option value="@LoanRules.StatusReturned">@LoanRules.StatusReturned</option>
             </select>
+            <span asp-validation-for="Status" class="text-danger small"></span>
         </div>
         <button type="submit" class="btn btn-primary">Save changes</button>
         <a asp-action="Index" asp-route-filter="all" class="btn btn-outline-secondary ms-2">Cancel</a>

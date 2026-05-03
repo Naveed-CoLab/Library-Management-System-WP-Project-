@@ -1,31 +1,88 @@
 @{
+    var area = ViewContext.RouteData.Values["area"]?.ToString();
     var ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
 }
-<span class="sidebar-heading">Overview</span>
-<a class="sidebar-link @(ctrl == "Home" ? "active" : null)" asp-controller="Home" asp-action="Index">
-    <i class="bi bi-columns-gap"></i> Dashboard
-</a>
-<span class="sidebar-heading">Catalogue</span>
-<a class="sidebar-link @(ctrl == "Books" ? "active" : null)" asp-controller="Books" asp-action="Index">
-    <i class="bi bi-journal-richtext"></i> Books
-</a>
-<a class="sidebar-link @(ctrl == "Authors" ? "active" : null)" asp-controller="Authors" asp-action="Index">
-    <i class="bi bi-person-badge"></i> Authors
-</a>
-<span class="sidebar-heading">Patrons</span>
-<a class="sidebar-link @(ctrl == "Members" ? "active" : null)" asp-controller="Members" asp-action="Index">
-    <i class="bi bi-people"></i> Members
-</a>
-<span class="sidebar-heading">Circulation</span>
-<a class="sidebar-link @(ctrl == "BorrowRecords" ? "active" : null)" asp-controller="BorrowRecords" asp-action="Index">
-    <i class="bi bi-arrow-left-right"></i> Loans
-</a>
-<a class="sidebar-link" asp-controller="BorrowRecords" asp-action="Create">
-    <i class="bi bi-plus-circle"></i> New checkout
-</a>
-<a class="sidebar-link @(ctrl == "Reservations" ? "active" : null)" asp-controller="Reservations" asp-action="Index">
-    <i class="bi bi-bookmark-heart"></i> Reservations
-</a>
-<a class="sidebar-link @(ctrl == "Fines" ? "active" : null)" asp-controller="Fines" asp-action="Index">
-    <i class="bi bi-cash-coin"></i> Fines
-</a>
+@if (area == "Admin")
+{
+    <div class="sidebar-group" data-nav-group>
+        <span class="sidebar-heading">Overview</span>
+        <a class="sidebar-link @(ctrl == "Home" ? "active" : null)" data-nav-label="Dashboard" asp-area="Admin" asp-controller="Home" asp-action="Index">
+            <i class="bi bi-columns-gap"></i><span class="sidebar-link-label">Dashboard</span>
+        </a>
+        <a class="sidebar-link @(ctrl == "Reports" ? "active" : null)" data-nav-label="Reports analytics" asp-area="Admin" asp-controller="Reports" asp-action="Index">
+            <i class="bi bi-graph-up-arrow"></i><span class="sidebar-link-label">Reports</span>
+        </a>
+    </div>
+    <div class="sidebar-group" data-nav-group>
+        <span class="sidebar-heading">Catalogue</span>
+        <a class="sidebar-link @(ctrl == "Books" ? "active" : null)" data-nav-label="Books catalogue" asp-area="Admin" asp-controller="Books" asp-action="Index">
+            <i class="bi bi-journal-richtext"></i><span class="sidebar-link-label">Books</span>
+        </a>
+        <a class="sidebar-link @(ctrl == "Authors" ? "active" : null)" data-nav-label="Authors" asp-area="Admin" asp-controller="Authors" asp-action="Index">
+            <i class="bi bi-person-badge"></i><span class="sidebar-link-label">Authors</span>
+        </a>
+    </div>
+    <div class="sidebar-group" data-nav-group>
+        <span class="sidebar-heading">Patrons</span>
+        <a class="sidebar-link @(ctrl == "Members" ? "active" : null)" data-nav-label="Members patrons" asp-area="Admin" asp-controller="Members" asp-action="Index">
+            <i class="bi bi-people"></i><span class="sidebar-link-label">Members</span>
+        </a>
+    </div>
+    <div class="sidebar-group" data-nav-group>
+        <span class="sidebar-heading">Circulation</span>
+        <a class="sidebar-link @(ctrl == "BorrowRecords" ? "active" : null)" data-nav-label="Loans circulation" asp-area="Admin" asp-controller="BorrowRecords" asp-action="Index">
+            <i class="bi bi-arrow-left-right"></i><span class="sidebar-link-label">Loans</span>
+        </a>
+        <a class="sidebar-link" data-nav-label="New checkout issue book" asp-area="Admin" asp-controller="BorrowRecords" asp-action="Create">
+            <i class="bi bi-plus-circle"></i><span class="sidebar-link-label">New checkout</span>
+        </a>
+        <a class="sidebar-link @(ctrl == "Reservations" ? "active" : null)" data-nav-label="Reservations holds" asp-area="Admin" asp-controller="Reservations" asp-action="Index">
+            <i class="bi bi-bookmark-heart"></i><span class="sidebar-link-label">Reservations</span>
+        </a>
+        <a class="sidebar-link @(ctrl == "Fines" ? "active" : null)" data-nav-label="Fines payments" asp-area="Admin" asp-controller="Fines" asp-action="Index">
+            <i class="bi bi-cash-coin"></i><span class="sidebar-link-label">Fines</span>
+        </a>
+    </div>
+    <div class="sidebar-group" data-nav-group>
+        <span class="sidebar-heading">System</span>
+        <a class="sidebar-link @(ctrl == "Settings" ? "active" : null)" data-nav-label="Settings rules" asp-area="Admin" asp-controller="Settings" asp-action="Index">
+            <i class="bi bi-sliders"></i><span class="sidebar-link-label">Settings</span>
+        </a>
+    </div>
+}
+else if (area == "User")
+{
+    <div class="sidebar-group" data-nav-group>
+        <span class="sidebar-heading">My Library</span>
+        <a class="sidebar-link @(ctrl == "Home" ? "active" : null)" data-nav-label="Dashboard" asp-area="User" asp-controller="Home" asp-action="Index">
+            <i class="bi bi-columns-gap"></i><span class="sidebar-link-label">Dashboard</span>
+        </a>
+        <a class="sidebar-link @(ctrl == "Catalog" ? "active" : null)" data-nav-label="Browse catalog books" asp-area="User" asp-controller="Catalog" asp-action="Index">
+            <i class="bi bi-search"></i><span class="sidebar-link-label">Browse catalog</span>
+        </a>
+        <a class="sidebar-link @(ctrl == "Loans" ? "active" : null)" data-nav-label="My loans" asp-area="User" asp-controller="Loans" asp-action="Index">
+            <i class="bi bi-journal-check"></i><span class="sidebar-link-label">My loans</span>
+        </a>
+        <a class="sidebar-link @(ctrl == "Reservations" ? "active" : null)" data-nav-label="My reservations holds" asp-area="User" asp-controller="Reservations" asp-action="Index">
+            <i class="bi bi-bookmark-heart"></i><span class="sidebar-link-label">My reservations</span>
+        </a>
+        <a class="sidebar-link @(ctrl == "Fines" ? "active" : null)" data-nav-label="My fines" asp-area="User" asp-controller="Fines" asp-action="Index">
+            <i class="bi bi-cash-coin"></i><span class="sidebar-link-label">My fines</span>
+        </a>
+    </div>
+}
+else
+{
+    <div class="sidebar-group" data-nav-group>
+        <span class="sidebar-heading">Access</span>
+        <a class="sidebar-link @(ctrl == "UserAuth" ? "active" : null)" data-nav-label="User login" asp-area="" asp-controller="UserAuth" asp-action="Login">
+            <i class="bi bi-person-check"></i><span class="sidebar-link-label">User login</span>
+        </a>
+        <a class="sidebar-link" data-nav-label="User signup register" asp-area="" asp-controller="UserAuth" asp-action="Signup">
+            <i class="bi bi-person-plus"></i><span class="sidebar-link-label">User signup</span>
+        </a>
+        <a class="sidebar-link @(ctrl == "AdminAuth" ? "active" : null)" data-nav-label="Admin login" asp-area="" asp-controller="AdminAuth" asp-action="Login">
+            <i class="bi bi-shield-lock"></i><span class="sidebar-link-label">Admin login</span>
+        </a>
+    </div>
+}

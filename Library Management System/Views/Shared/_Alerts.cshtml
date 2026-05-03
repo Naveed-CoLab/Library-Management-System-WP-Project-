@@ -1,21 +1,39 @@
-@if (TempData["Success"] is string ok)
-{
-    <div class="alert alert-success border-0 shadow-sm mb-4 d-flex align-items-center gap-2 alert-accent-success" role="alert">
-        <i class="bi bi-check-circle-fill flex-shrink-0"></i>
-        <div>@ok</div>
-    </div>
+@using System.Notifications
+@using System.Text.Json
+@{
+    var messages = new List<SnackbarMessage>();
+    if (TempData["SnackbarMessages"] is string json && !string.IsNullOrWhiteSpace(json))
+    {
+        messages.AddRange(JsonSerializer.Deserialize<List<SnackbarMessage>>(json) ?? new List<SnackbarMessage>());
+    }
+
+    if (TempData["Success"] is string ok)
+        messages.Add(new SnackbarMessage("success", ok));
+    if (TempData["Warning"] is string warn)
+        messages.Add(new SnackbarMessage("warning", warn));
+    if (TempData["Error"] is string err)
+        messages.Add(new SnackbarMessage("danger", err));
 }
-@if (TempData["Warning"] is string warn)
+
+@if (messages.Count > 0)
 {
-    <div class="alert alert-warning border-0 shadow-sm mb-4 d-flex align-items-center gap-2 alert-accent-warning" role="alert">
-        <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
-        <div>@warn</div>
-    </div>
-}
-@if (TempData["Error"] is string err)
-{
-    <div class="alert alert-danger border-0 shadow-sm mb-4 d-flex align-items-center gap-2 alert-accent-danger" role="alert">
-        <i class="bi bi-x-circle-fill flex-shrink-0"></i>
-        <div>@err</div>
+    <div class="snackbar-stack" aria-live="polite" aria-atomic="true">
+        @foreach (var item in messages)
+        {
+            var icon = item.Kind switch
+            {
+                "success" => "bi-check-circle-fill",
+                "warning" => "bi-exclamation-triangle-fill",
+                "danger" => "bi-x-circle-fill",
+                _ => "bi-info-circle-fill"
+            };
+            <div class="snackbar snackbar-@item.Kind" role="status" data-snackbar>
+                <i class="bi @icon flex-shrink-0"></i>
+                <div class="snackbar-message">@item.Message</div>
+                <button type="button" class="snackbar-close" data-snackbar-close aria-label="Dismiss notification">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+        }
     </div>
 }
