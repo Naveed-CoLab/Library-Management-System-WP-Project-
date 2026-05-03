@@ -1,5 +1,7 @@
 # Library Management System (Lumina)
 
+Course / WP project: **[Library-Management-System-WP-Project-](https://github.com/Naveed-CoLab/Library-Management-System-WP-Project-)**
+
 ASP.NET Core 8 MVC library suite with catalogue, circulation (checkouts, returns, overdue), reservations, fines, and a responsive **Lumina** dashboard UI. Uses **Entity Framework Core** with **MySQL**.
 
 ## Repository layout
