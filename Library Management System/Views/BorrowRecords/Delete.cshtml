@@ -1,0 +1,18 @@
+@model System.Models.BorrowRecord
+@{ ViewData["Title"] = "Delete loan record"; }
+<div class="card-surface p-4" style="max-width:520px;">
+    <h2 class="h5 mb-2" style="font-family:var(--font-display); font-weight:600;">Remove record?</h2>
+    <p class="text-danger small">Use this only to fix data-entry mistakes. Prefer <strong>Return</strong> for normal check-ins. Linked fines will also be removed.</p>
+    <dl class="row small mb-4">
+        <dt class="col-4 text-muted">Member</dt><dd class="col-8 fw-semibold">@Model.Member?.FullName</dd>
+        <dt class="col-4 text-muted">Barcode</dt><dd class="col-8 font-monospace">@Model.BookItem?.Barcode</dd>
+        <dt class="col-4 text-muted">Title</dt><dd class="col-8">@Model.BookItem?.Book?.Title</dd>
+        <dt class="col-4 text-muted">Borrowed</dt><dd class="col-8">@Model.BorrowDate</dd>
+        <dt class="col-4 text-muted">Status</dt><dd class="col-8">@Model.Status</dd>
+    </dl>
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="BorrowRecordId" />
+        <button type="submit" class="btn btn-danger">Delete record</button>
+        <a asp-action="Index" asp-route-filter="all" class="btn btn-outline-secondary ms-2">Cancel</a>
+    </form>
+</div>

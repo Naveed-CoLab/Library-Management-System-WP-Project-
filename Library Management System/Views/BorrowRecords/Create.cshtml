@@ -1,0 +1,36 @@
+@model System.Models.BorrowRecord
+@{ ViewData["Title"] = "New checkout"; }
+<div class="card-surface form-card p-4">
+    <p class="text-muted small mb-4">Loans always attach to a <strong>specific barcode</strong>. Default loan length: @ViewBag.DefaultLoanDays days.</p>
+    <form asp-action="Create">
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+        <div class="mb-3">
+            <label asp-for="MemberId" class="form-label"></label>
+            <select asp-for="MemberId" asp-items="ViewBag.MemberId" class="form-select" required>
+                <option value="">Choose member</option>
+            </select>
+            <span asp-validation-for="MemberId" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="BookItemId" class="form-label">Available copy</label>
+            <select asp-for="BookItemId" asp-items="ViewBag.BookItemId" class="form-select" required>
+                <option value="">Choose barcode</option>
+            </select>
+            <span asp-validation-for="BookItemId" class="text-danger small"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="BorrowDate" class="form-label"></label>
+            <input asp-for="BorrowDate" class="form-control" type="date" />
+            <span asp-validation-for="BorrowDate" class="text-danger small"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="DueDate" class="form-label"></label>
+            <input asp-for="DueDate" class="form-control" type="date" />
+            <span class="form-text text-muted">Leave blank = borrow date + @ViewBag.DefaultLoanDays days.</span>
+            <span asp-validation-for="DueDate" class="text-danger small d-block"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Record checkout</button>
+        <a asp-action="Index" class="btn btn-outline-secondary ms-2">Cancel</a>
+    </form>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

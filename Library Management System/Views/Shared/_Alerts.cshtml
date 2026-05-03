@@ -1,0 +1,21 @@
+@if (TempData["Success"] is string ok)
+{
+    <div class="alert alert-success border-0 shadow-sm mb-4 d-flex align-items-center gap-2 alert-accent-success" role="alert">
+        <i class="bi bi-check-circle-fill flex-shrink-0"></i>
+        <div>@ok</div>
+    </div>
+}
+@if (TempData["Warning"] is string warn)
+{
+    <div class="alert alert-warning border-0 shadow-sm mb-4 d-flex align-items-center gap-2 alert-accent-warning" role="alert">
+        <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+        <div>@warn</div>
+    </div>
+}
+@if (TempData["Error"] is string err)
+{
+    <div class="alert alert-danger border-0 shadow-sm mb-4 d-flex align-items-center gap-2 alert-accent-danger" role="alert">
+        <i class="bi bi-x-circle-fill flex-shrink-0"></i>
+        <div>@err</div>
+    </div>
+}

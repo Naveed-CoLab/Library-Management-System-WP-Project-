@@ -1,0 +1,31 @@
+@{
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+<span class="sidebar-heading">Overview</span>
+<a class="sidebar-link @(ctrl == "Home" ? "active" : null)" asp-controller="Home" asp-action="Index">
+    <i class="bi bi-columns-gap"></i> Dashboard
+</a>
+<span class="sidebar-heading">Catalogue</span>
+<a class="sidebar-link @(ctrl == "Books" ? "active" : null)" asp-controller="Books" asp-action="Index">
+    <i class="bi bi-journal-richtext"></i> Books
+</a>
+<a class="sidebar-link @(ctrl == "Authors" ? "active" : null)" asp-controller="Authors" asp-action="Index">
+    <i class="bi bi-person-badge"></i> Authors
+</a>
+<span class="sidebar-heading">Patrons</span>
+<a class="sidebar-link @(ctrl == "Members" ? "active" : null)" asp-controller="Members" asp-action="Index">
+    <i class="bi bi-people"></i> Members
+</a>
+<span class="sidebar-heading">Circulation</span>
+<a class="sidebar-link @(ctrl == "BorrowRecords" ? "active" : null)" asp-controller="BorrowRecords" asp-action="Index">
+    <i class="bi bi-arrow-left-right"></i> Loans
+</a>
+<a class="sidebar-link" asp-controller="BorrowRecords" asp-action="Create">
+    <i class="bi bi-plus-circle"></i> New checkout
+</a>
+<a class="sidebar-link @(ctrl == "Reservations" ? "active" : null)" asp-controller="Reservations" asp-action="Index">
+    <i class="bi bi-bookmark-heart"></i> Reservations
+</a>
+<a class="sidebar-link @(ctrl == "Fines" ? "active" : null)" asp-controller="Fines" asp-action="Index">
+    <i class="bi bi-cash-coin"></i> Fines
+</a>

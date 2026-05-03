@@ -1,0 +1,15 @@
+@model System.Models.Member
+@{ ViewData["Title"] = "Delete member"; }
+<div class="card-surface p-4" style="max-width:520px;">
+    <h2 class="h5 mb-2" style="font-family:var(--font-display); font-weight:600;">Remove member?</h2>
+    <p class="text-danger small">Members with loan history may be protected by database rules.</p>
+    <dl class="row small mb-4">
+        <dt class="col-4 text-muted">Name</dt><dd class="col-8 fw-semibold">@Model.FullName</dd>
+        <dt class="col-4 text-muted">Email</dt><dd class="col-8">@Model.Email</dd>
+    </dl>
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="MemberId" />
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a asp-action="Index" class="btn btn-outline-secondary ms-2">Cancel</a>
+    </form>
+</div>

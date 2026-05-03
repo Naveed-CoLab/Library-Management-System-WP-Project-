@@ -1,0 +1,77 @@
+@model IEnumerable<System.Models.Book>
+@using System.Collections.Generic
+@{
+    ViewData["Title"] = "Books";
+    var outCounts = ViewBag.OutCounts as IDictionary<int, int> ?? new Dictionary<int, int>();
+}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <p class="text-muted mb-0" style="max-width:36rem;">Search titles, barcodes, authors, or shelves. Filter by controlled vocabulary categories.</p>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add book</a>
+</div>
+
+<form method="get" class="card-surface p-3 mb-4">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-5">
+            <label class="form-label small text-muted mb-1">Search</label>
+            <input type="search" name="q" value="@ViewBag.Q" class="form-control" placeholder="Title, ISBN, author, barcode…" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small text-muted mb-1">Category</label>
+            <select name="categoryId" class="form-select" asp-items="ViewBag.CategoryOptions"></select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-grow-1">Apply</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
+        </div>
+    </div>
+</form>
+
+<div class="card-surface table-card">
+    <div class="table-responsive">
+        <table class="table table-modern align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Category</th>
+                    <th class="text-center">Copies</th>
+                    <th class="text-center">Available</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var total = item.Items.Count;
+                    var outN = outCounts.TryGetValue(item.BookId, out var c) ? c : 0;
+                    var avail = total - outN;
+                    <tr>
+                        <td class="fw-semibold">@item.Title</td>
+                        <td>@item.Author.FullName</td>
+                        <td><span class="text-muted">@item.Category.Name</span></td>
+                        <td class="text-center">@total</td>
+                        <td class="text-center">
+                            @if (avail <= 0)
+                            {
+                                <span class="badge badge-status badge-overdue">0</span>
+                            }
+                            else if (avail < total)
+                            {
+                                <span class="badge badge-status badge-borrowed">@avail</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-status" style="background:rgba(5,150,105,.15);color:var(--success);">@avail</span>
+                            }
+                        </td>
+                        <td class="text-end action-cluster">
+                            <a asp-action="Details" asp-route-id="@item.BookId" class="btn btn-outline-secondary btn-sm">Details</a>
+                            <a asp-action="Edit" asp-route-id="@item.BookId" class="btn btn-outline-secondary btn-sm">Edit</a>
+                            <a asp-action="Delete" asp-route-id="@item.BookId" class="btn btn-outline-danger btn-sm">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

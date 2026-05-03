@@ -1,0 +1,46 @@
+## Build
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+*.log
+
+## Visual Studio / VS Code / Rider
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.cache
+.idea/
+*.DotSettings.user
+
+## Secrets & local config (never commit real passwords)
+appsettings.*.local.json
+**/appsettings.Production.json
+secrets.json
+
+## EF / tooling
+*.mdf
+*.ldf
+
+## OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+## NuGet
+*.nupkg
+**/packages/
+project.lock.json
+project.fragment.lock.json
+
+## Test / coverage
+TestResults/
+coverage*
+*.coverage
+
+## Misc
+*.tmp
+*.temp
+*.bak

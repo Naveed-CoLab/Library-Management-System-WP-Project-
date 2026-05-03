@@ -1,0 +1,7 @@
+@model System.Models.ErrorViewModel
+@{ ViewData["Title"] = "Error"; }
+<h2>An error occurred.</h2>
+@if (Model.ShowRequestId)
+{
+    <p>Request ID: @Model.RequestId</p>
+}

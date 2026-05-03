@@ -1,0 +1,60 @@
+@model System.Models.Book
+@{ ViewData["Title"] = "Add book"; }
+<div class="card-surface form-card p-4">
+    <form asp-action="Create">
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label"></label>
+            <input asp-for="Title" class="form-control" required />
+        </div>
+        <div class="mb-3">
+            <label asp-for="AuthorId" class="form-label">Author</label>
+            <select asp-for="AuthorId" asp-items="ViewBag.AuthorId" class="form-select" required></select>
+        </div>
+        <div class="mb-3">
+            <label asp-for="CategoryId" class="form-label"></label>
+            <select asp-for="CategoryId" asp-items="ViewBag.CategoryId" class="form-select" required></select>
+        </div>
+        <div class="mb-3">
+            <label asp-for="PublisherId" class="form-label"></label>
+            <select asp-for="PublisherId" asp-items="ViewBag.PublisherId" class="form-select">
+                <option value="">None</option>
+            </select>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="PublishedYear" class="form-label"></label>
+                <input asp-for="PublishedYear" class="form-control" type="number" required />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ISBN" class="form-label"></label>
+                <input asp-for="ISBN" class="form-control" placeholder="Optional if unknown" />
+            </div>
+        </div>
+        <div class="mb-3 mt-3">
+            <label asp-for="Summary" class="form-label"></label>
+            <textarea asp-for="Summary" class="form-control" rows="3" placeholder="Short abstract"></textarea>
+        </div>
+        <hr class="my-4" />
+        <p class="small text-muted mb-3">Each physical volume receives a barcode <span class="font-monospace">LIB-{titleId}-{copy}</span>.</p>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Initial copies</label>
+                <input type="number" name="initialCopies" class="form-control" min="1" max="999" value="@(ViewBag.InitialCopies ?? 1)" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Receiving branch</label>
+                <select name="branchId" class="form-select" asp-items="ViewBag.BranchId"></select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Shelf prefix (optional)</label>
+                <input type="text" name="shelfPrefix" class="form-control" value="@ViewBag.ShelfPrefix" placeholder="e.g. A-12" />
+            </div>
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Save title & copies</button>
+            <a asp-action="Index" class="btn btn-outline-secondary ms-2">Cancel</a>
+        </div>
+    </form>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

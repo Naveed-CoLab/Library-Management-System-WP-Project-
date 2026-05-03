@@ -1,0 +1,16 @@
+@model System.Models.Book
+@{ ViewData["Title"] = "Delete book"; var copies = Model.Items?.Count ?? 0; }
+<div class="card-surface p-4" style="max-width:520px;">
+    <h2 class="h5 mb-2" style="font-family:var(--font-display); font-weight:600;">Remove catalogue title?</h2>
+    <p class="text-danger small">Deletes every barcode, reservation, and historical loan row tied to this bibliographic record.</p>
+    <dl class="row small mb-4">
+        <dt class="col-4 text-muted">Title</dt><dd class="col-8 fw-semibold">@Model.Title</dd>
+        <dt class="col-4 text-muted">Author</dt><dd class="col-8">@Model.Author?.FullName</dd>
+        <dt class="col-4 text-muted">Copies</dt><dd class="col-8">@copies tracked items</dd>
+    </dl>
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="BookId" />
+        <button type="submit" class="btn btn-danger">Delete permanently</button>
+        <a asp-action="Index" class="btn btn-outline-secondary ms-2">Cancel</a>
+    </form>
+</div>

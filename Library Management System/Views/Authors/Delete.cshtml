@@ -1,0 +1,15 @@
+@model System.Models.Author
+@{ ViewData["Title"] = "Delete author"; }
+<div class="card-surface p-4" style="max-width:520px;">
+    <h2 class="h5 mb-2" style="font-family:var(--font-display); font-weight:600;">Remove author?</h2>
+    <p class="text-danger small mb-2">If you continue, all catalogue titles by this author—and their loan history—will be removed. Any title still checked out must be returned first.</p>
+    <dl class="row small mb-4">
+        <dt class="col-4 text-muted">Name</dt><dd class="col-8 fw-semibold">@Model.FullName</dd>
+        <dt class="col-4 text-muted">Works</dt><dd class="col-8">@Model.Books.Count titles</dd>
+    </dl>
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="AuthorId" />
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a asp-action="Index" class="btn btn-outline-secondary ms-2">Cancel</a>
+    </form>
+</div>

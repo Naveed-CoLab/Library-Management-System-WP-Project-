@@ -1,0 +1,96 @@
+@model IEnumerable<System.Models.BorrowRecord>
+@{
+    ViewData["Title"] = "Loans";
+    var filter = ViewBag.Filter as string ?? "active";
+    var today = ViewBag.Today is DateOnly t ? t : DateOnly.FromDateTime(DateTime.Today);
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+    <p class="text-muted mb-0" style="max-width:40rem;">Filter the queue, process returns in one click, and drill into loan details when adjustments are needed.</p>
+    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>New checkout</a>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a class="filter-pill @(filter == "active" ? "active" : null)" asp-action="Index" asp-route-filter="active">Active</a>
+    <a class="filter-pill @(filter == "overdue" ? "active" : null)" asp-action="Index" asp-route-filter="overdue">Overdue</a>
+    <a class="filter-pill @(filter == "returned" ? "active" : null)" asp-action="Index" asp-route-filter="returned">Returned</a>
+    <a class="filter-pill @(filter == "all" ? "active" : null)" asp-action="Index" asp-route-filter="all">All</a>
+</div>
+
+<div class="card-surface table-card">
+    <div class="table-responsive">
+        <table class="table table-modern align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Patron</th>
+                    <th>Book</th>
+                    <th>Borrowed</th>
+                    <th>Due</th>
+                    <th>Returned</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var isBorrowed = item.ReturnDate == null && item.Status == LoanRules.StatusBorrowed;
+                    var overdue = isBorrowed && item.DueDate.HasValue && item.DueDate < today;
+                    <tr>
+                        <td class="fw-semibold">@item.Member.FullName</td>
+                        <td>
+                            @item.BookItem.Book.Title
+                            <span class="text-muted small">· @item.BookItem.Barcode</span>
+                            <span class="text-muted small d-block">@item.BookItem.Book.Author.FullName</span>
+                        </td>
+                        <td>@item.BorrowDate</td>
+                        <td>
+                            @if (item.DueDate.HasValue)
+                            {
+                                if (overdue)
+                                {
+                                    <span class="badge badge-status badge-overdue">@item.DueDate</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">@item.DueDate</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td>@(item.ReturnDate?.ToString() ?? "—")</td>
+                        <td>
+                            @if (overdue)
+                            {
+                                <span class="badge badge-status badge-overdue">Overdue</span>
+                            }
+                            else if (isBorrowed)
+                            {
+                                <span class="badge badge-status badge-borrowed">On loan</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-status badge-returned">Returned</span>
+                            }
+                        </td>
+                        <td class="text-end action-cluster">
+                            @if (isBorrowed)
+                            {
+                                <form asp-action="Return" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@item.BorrowRecordId" />
+                                    <button type="submit" class="btn btn-sm btn-primary">Return</button>
+                                </form>
+                            }
+                            <a asp-action="Details" asp-route-id="@item.BorrowRecordId" class="btn btn-outline-secondary btn-sm">Details</a>
+                            <a asp-action="Edit" asp-route-id="@item.BorrowRecordId" class="btn btn-outline-secondary btn-sm">Edit</a>
+                            <a asp-action="Delete" asp-route-id="@item.BorrowRecordId" class="btn btn-outline-danger btn-sm">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

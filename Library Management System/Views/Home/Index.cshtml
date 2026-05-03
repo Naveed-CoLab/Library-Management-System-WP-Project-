@@ -1,0 +1,206 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    var today = DateOnly.FromDateTime(DateTime.Today);
+}
+
+<div class="hero-panel mb-4">
+    <div class="hero-panel-inner">
+        <h2>Welcome to your library control centre</h2>
+        <p>Inventory is barcode-driven: publishers, subjects, branches, holds, and fines tie together for production-grade circulation.</p>
+        <div class="hero-actions">
+            <a class="btn btn-light" asp-controller="BorrowRecords" asp-action="Create"><i class="bi bi-plus-circle me-1"></i>New checkout</a>
+            <a class="btn btn-outline-light" asp-controller="Books" asp-action="Index"><i class="bi bi-journal-richtext me-1"></i>Browse books</a>
+            <a class="btn btn-outline-light d-none d-sm-inline-flex" asp-controller="Reservations" asp-action="Index"><i class="bi bi-bookmark-heart me-1"></i>Reservations</a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-2 g-md-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <div class="card-surface stat-card d-flex justify-content-between align-items-start gap-2">
+            <div>
+                <div class="stat-label">Titles</div>
+                <div class="stat-value">@Model.TotalBooks</div>
+                <div class="stat-hint">@Model.TotalCopies copies</div>
+            </div>
+            <div class="stat-icon"><i class="bi bi-journal-richtext"></i></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card-surface stat-card d-flex justify-content-between align-items-start gap-2">
+            <div>
+                <div class="stat-label">On loan</div>
+                <div class="stat-value">@Model.ActiveLoans</div>
+                <div class="stat-hint">@Model.AvailableCopiesNow on shelves</div>
+            </div>
+            <div class="stat-icon"><i class="bi bi-arrow-left-right"></i></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card-surface stat-card d-flex justify-content-between align-items-start gap-2">
+            <div>
+                <div class="stat-label">Members</div>
+                <div class="stat-value">@Model.TotalMembers</div>
+                <div class="stat-hint">@Model.TotalAuthors authors</div>
+            </div>
+            <div class="stat-icon"><i class="bi bi-people"></i></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card-surface stat-card d-flex justify-content-between align-items-start gap-2">
+            <div>
+                <div class="stat-label">Overdue</div>
+                <div class="stat-value @(Model.OverdueLoans > 0 ? "text-danger" : "")">@Model.OverdueLoans</div>
+                <div class="stat-hint">Follow-up</div>
+            </div>
+            <div class="stat-icon"><i class="bi bi-alarm"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-2 g-md-3 mb-4">
+    <div class="col-12 col-sm-6">
+        <div class="card-surface stat-card d-flex justify-content-between align-items-start gap-2">
+            <div>
+                <div class="stat-label">Holds queue</div>
+                <div class="stat-value">@Model.PendingReservations</div>
+                <div class="stat-hint"><a asp-controller="Reservations" asp-action="Index">Manage reservations</a></div>
+            </div>
+            <div class="stat-icon"><i class="bi bi-bookmark-heart"></i></div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6">
+        <div class="card-surface stat-card d-flex justify-content-between align-items-start gap-2">
+            <div>
+                <div class="stat-label">Unpaid fines</div>
+                <div class="stat-value @(Model.OutstandingFinesTotal > 0 ? "text-danger" : "")">@Model.OutstandingFinesTotal.ToString("C")</div>
+                <div class="stat-hint"><a asp-controller="Fines" asp-action="Index">Open fines ledger</a></div>
+            </div>
+            <div class="stat-icon"><i class="bi bi-cash-coin"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 g-lg-4">
+    <div class="col-lg-6">
+        <div class="card-surface table-card p-3 p-md-4 h-100">
+            <div class="panel-head">
+                <h2 class="panel-title">Attention · overdue</h2>
+                <a class="btn btn-sm btn-soft" asp-controller="BorrowRecords" asp-action="Index" asp-route-filter="overdue">View all</a>
+            </div>
+            @if (Model.OverdueItems.Count == 0)
+            {
+                <div class="empty-state py-4"><i class="bi bi-check-circle d-block fs-3 mb-2 opacity-50"></i>Nothing overdue. Great work.</div>
+            }
+            else
+            {
+                <div class="d-md-none">
+                    @foreach (var br in Model.OverdueItems)
+                    {
+                        <div class="dash-mini-card">
+                            <div class="dash-mini-row mb-1">
+                                <span class="dash-mini-value fw-semibold">@br.Member.FullName</span>
+                                <span class="badge badge-status badge-overdue">Due @br.DueDate</span>
+                            </div>
+                            <div class="dash-mini-label">Book</div>
+                            <div class="dash-mini-value">@br.BookItem.Book.Title</div>
+                            <div class="dash-mini-label mt-2">Copy</div>
+                            <div class="dash-mini-value font-monospace small">@br.BookItem.Barcode</div>
+                        </div>
+                    }
+                </div>
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-modern align-middle mb-0">
+                        <thead><tr><th>Member</th><th>Book</th><th>Copy</th><th>Due</th></tr></thead>
+                        <tbody>
+                            @foreach (var br in Model.OverdueItems)
+                            {
+                                <tr>
+                                    <td>@br.Member.FullName</td>
+                                    <td>@br.BookItem.Book.Title</td>
+                                    <td class="font-monospace small">@br.BookItem.Barcode</td>
+                                    <td><span class="badge badge-status badge-overdue">@br.DueDate</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card-surface table-card p-3 p-md-4 h-100">
+            <div class="panel-head">
+                <h2 class="panel-title">Recent circulation</h2>
+                <a class="btn btn-sm btn-soft" asp-controller="BorrowRecords" asp-action="Index" asp-route-filter="all">Full history</a>
+            </div>
+            @if (Model.RecentActivity.Count == 0)
+            {
+                <div class="empty-state py-4"><i class="bi bi-inbox d-block fs-3 mb-2 opacity-50"></i>No lending activity yet.</div>
+            }
+            else
+            {
+                <div class="d-md-none">
+                    @foreach (var br in Model.RecentActivity)
+                    {
+                        var isBorrowed = br.ReturnDate == null && br.Status == LoanRules.StatusBorrowed;
+                        var overdue = isBorrowed && br.DueDate.HasValue && br.DueDate < today;
+                        <div class="dash-mini-card">
+                            <div class="dash-mini-row mb-1">
+                                <span class="dash-mini-value fw-semibold">@br.BookItem.Book.Title</span>
+                                @if (overdue)
+                                {
+                                    <span class="badge badge-status badge-overdue">Overdue</span>
+                                }
+                                else if (isBorrowed)
+                                {
+                                    <span class="badge badge-status badge-borrowed">On loan</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-status badge-returned">Returned</span>
+                                }
+                            </div>
+                            <div class="dash-mini-label">Member</div>
+                            <div class="dash-mini-value">@br.Member.FullName</div>
+                            <div class="dash-mini-label mt-2">Copy</div>
+                            <div class="dash-mini-value font-monospace small">@br.BookItem.Barcode</div>
+                        </div>
+                    }
+                </div>
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-modern align-middle mb-0">
+                        <thead><tr><th>Book</th><th>Copy</th><th>Member</th><th>Status</th></tr></thead>
+                        <tbody>
+                            @foreach (var br in Model.RecentActivity)
+                            {
+                                var isBorrowed = br.ReturnDate == null && br.Status == LoanRules.StatusBorrowed;
+                                var overdue = isBorrowed && br.DueDate.HasValue && br.DueDate < today;
+                                <tr>
+                                    <td>@br.BookItem.Book.Title</td>
+                                    <td class="font-monospace small">@br.BookItem.Barcode</td>
+                                    <td>@br.Member.FullName</td>
+                                    <td>
+                                        @if (overdue)
+                                        {
+                                            <span class="badge badge-status badge-overdue">Overdue</span>
+                                        }
+                                        else if (isBorrowed)
+                                        {
+                                            <span class="badge badge-status badge-borrowed">On loan</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-status badge-returned">Returned</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

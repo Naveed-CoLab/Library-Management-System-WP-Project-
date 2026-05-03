@@ -1,0 +1,89 @@
+@model System.Models.BorrowRecord
+@{
+    ViewData["Title"] = "Loan details";
+    var today = ViewBag.Today is DateOnly t ? t : DateOnly.FromDateTime(DateTime.Today);
+    var isBorrowed = Model.ReturnDate == null && Model.Status == LoanRules.StatusBorrowed;
+    var overdue = isBorrowed && Model.DueDate.HasValue && Model.DueDate < today;
+}
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card-surface p-4">
+            <dl class="row mb-0 small">
+                <dt class="col-sm-4 text-muted">Member</dt>
+                <dd class="col-sm-8 fw-semibold">@Model.Member?.FullName</dd>
+                <dt class="col-sm-4 text-muted">Email</dt>
+                <dd class="col-sm-8">@Model.Member?.Email</dd>
+                <dt class="col-sm-4 text-muted">Barcode</dt>
+                <dd class="col-sm-8 font-monospace fw-semibold">@Model.BookItem?.Barcode</dd>
+                <dt class="col-sm-4 text-muted">Branch</dt>
+                <dd class="col-sm-8">@Model.BookItem?.Branch?.Name</dd>
+                <dt class="col-sm-4 text-muted">Title</dt>
+                <dd class="col-sm-8 fw-semibold">@Model.BookItem?.Book?.Title</dd>
+                <dt class="col-sm-4 text-muted">Author</dt>
+                <dd class="col-sm-8">@Model.BookItem?.Book?.Author?.FullName</dd>
+                <dt class="col-sm-4 text-muted">Borrow date</dt>
+                <dd class="col-sm-8">@Model.BorrowDate</dd>
+                <dt class="col-sm-4 text-muted">Due date</dt>
+                <dd class="col-sm-8">
+                    @if (Model.DueDate.HasValue)
+                    {
+                        if (overdue)
+                        {
+                            <span class="badge badge-status badge-overdue">@Model.DueDate (overdue)</span>
+                        }
+                        else
+                        {
+                            @Model.DueDate
+                        }
+                    }
+                    else { <span class="text-muted">—</span> }
+                </dd>
+                <dt class="col-sm-4 text-muted">Return date</dt>
+                <dd class="col-sm-8">@(Model.ReturnDate?.ToString() ?? "Still on loan")</dd>
+                <dt class="col-sm-4 text-muted">Status</dt>
+                <dd class="col-sm-8">
+                    @if (overdue)
+                    {
+                        <span class="badge badge-status badge-overdue">Overdue</span>
+                    }
+                    else if (isBorrowed)
+                    {
+                        <span class="badge badge-status badge-borrowed">On loan</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-status badge-returned">Returned</span>
+                    }
+                </dd>
+            </dl>
+            @if (Model.Fines.Any())
+            {
+                <hr />
+                <p class="fw-semibold small mb-2">Fines</p>
+                <ul class="small mb-0">
+                    @foreach (var f in Model.Fines.OrderByDescending(x => x.IssuedOn))
+                    {
+                        <li>@f.Reason — @f.Amount.ToString("C") @(f.PaidOn.HasValue ? "(paid " + f.PaidOn + ")" : "(unpaid)")</li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card-surface p-4 h-100">
+            <h3 class="h6" style="font-family:var(--font-display); font-weight:600;">Actions</h3>
+            <p class="text-muted small">Returns release the barcode for the next patron.</p>
+            @if (isBorrowed)
+            {
+                <form asp-action="Return" method="post" class="d-grid gap-2 mb-3">
+                    <input type="hidden" name="id" value="@Model.BorrowRecordId" />
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-in-down me-1"></i>Mark returned today</button>
+                </form>
+            }
+            <div class="d-flex flex-wrap gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.BorrowRecordId" class="btn btn-outline-secondary">Edit record</a>
+                <a asp-action="Index" class="btn btn-outline-secondary">Back to list</a>
+            </div>
+        </div>
+    </div>
+</div>

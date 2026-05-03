@@ -1,0 +1,39 @@
+@model IEnumerable<System.Models.Fine>
+@{
+    ViewData["Title"] = "Fines";
+    var filter = ViewBag.Filter as string ?? "unpaid";
+}
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a class="filter-pill @(filter == "unpaid" ? "active" : null)" asp-action="Index" asp-route-filter="unpaid">Unpaid</a>
+    <a class="filter-pill @(filter == "paid" ? "active" : null)" asp-action="Index" asp-route-filter="paid">Paid</a>
+    <a class="filter-pill @(filter == "all" ? "active" : null)" asp-action="Index" asp-route-filter="all">All</a>
+</div>
+<div class="card-surface table-card">
+    <div class="table-responsive">
+        <table class="table table-modern align-middle mb-0">
+            <thead><tr><th>Issued</th><th>Patron</th><th>Loan</th><th>Reason</th><th class="text-end">Amount</th><th>Paid</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+                @foreach (var f in Model)
+                {
+                    <tr>
+                        <td>@f.IssuedOn</td>
+                        <td>@f.BorrowRecord.Member.FullName</td>
+                        <td class="small font-monospace text-muted">@f.BorrowRecord.BookItem.Barcode · @f.BorrowRecord.BookItem.Book.Title</td>
+                        <td>@f.Reason</td>
+                        <td class="text-end fw-semibold">@f.Amount.ToString("C")</td>
+                        <td class="text-muted">@(f.PaidOn?.ToString() ?? "—")</td>
+                        <td class="text-end">
+                            @if (f.PaidOn == null)
+                            {
+                                <form asp-action="Pay" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@f.FineId" />
+                                    <button type="submit" class="btn btn-sm btn-primary">Mark paid</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
